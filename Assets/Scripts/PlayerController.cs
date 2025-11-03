@@ -10,13 +10,24 @@ public class PlayerController : MonoBehaviour
     
     private Vector2 moveInput;
     private Vector2 lookInput;
+
+    // action callback states
     private bool jumpPressed;
     private bool crouchPressed;
     private bool scanPressed;
+
+    private float standHeight = 2f;
+    private float crouchHeight = 1f;
+    private bool isCrouching;
     
     private CharacterController characterController;
     private Vector3 velocity;
     
+    [Header("Camera")]
+    public Transform cameraTarget; // Drag your CameraTarget here
+    public float standCameraHeight = 1.6f;
+    public float crouchCameraHeight = 0.8f;
+
     void Start()
     {
         characterController = GetComponent<CharacterController>();
@@ -27,7 +38,6 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext context) 
     {
-        Debug.Log("Trying to move");
         moveInput = context.ReadValue<Vector2>();
     }
 
@@ -58,7 +68,7 @@ public class PlayerController : MonoBehaviour
     public void OnCrouch(InputAction.CallbackContext context) 
     {
         crouchPressed = context.performed;
-        Debug.Log($"Crouch: {crouchPressed}");
+        Debug.Log(crouchPressed);
     }
 
     public void OnJump(InputAction.CallbackContext context) 
@@ -79,33 +89,36 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         HandleMovement();
-        HandleJump();
+        //HandleJump();
+        HandleCrouch();
     }
     
+
+
     void HandleMovement()
     {
-        bool isGrounded = characterController.isGrounded;
-        if (isGrounded && velocity.y < 0)
+        bool groundedPlayer = characterController.isGrounded;
+        if (groundedPlayer && velocity.y < 0)
         {
-            velocity.y = -2f;
+            velocity.y = 0f;
         }
-        
+
         Camera mainCam = Camera.main;
-        Vector3 forward = mainCam.transform.forward;
-        Vector3 right = mainCam.transform.right;
+        Vector3 cameraForward = mainCam.transform.forward;
+        Vector3 cameraRight = mainCam.transform.right;
         
-        forward.y = 0f;
-        right.y = 0f;
-        forward.Normalize();
-        right.Normalize();
+        cameraForward.y = 0f;
+        cameraRight.y = 0f;
+        cameraForward.Normalize();
+        cameraRight.Normalize();
         
-        Vector3 moveDirection = (forward * moveInput.y + right * moveInput.x) * speed;
+        Vector3 move = (cameraForward * moveInput.y + cameraRight * moveInput.x);
+        move = Vector3.ClampMagnitude(move, 1f);
         
         velocity.y += gravity * Time.deltaTime;
         
-        Vector3 finalMovement = moveDirection * Time.deltaTime + velocity * Time.deltaTime;
-        
-        characterController.Move(finalMovement);
+        Vector3 finalMove = (move * speed) + (velocity.y * Vector3.up);
+        characterController.Move(finalMove * Time.deltaTime);
     }
     
     void HandleJump()
@@ -115,6 +128,35 @@ public class PlayerController : MonoBehaviour
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
         jumpPressed = false;
+    }
+
+    void HandleCrouch() {
+        if (crouchPressed && !isCrouching && characterController.isGrounded) {
+            isCrouching = true;
+            characterController.height = crouchHeight;
+            characterController.center = new Vector3(0, crouchHeight / 2, 0);
+            
+            // Move camera target down
+            if (cameraTarget != null) {
+                Vector3 pos = cameraTarget.localPosition;
+                pos.y = crouchCameraHeight;
+                cameraTarget.localPosition = pos;
+            }
+        } 
+        else if (crouchPressed && isCrouching) {
+            if (!Physics.Raycast(transform.position, Vector3.up, standHeight)) {
+                isCrouching = false;
+                characterController.height = standHeight;
+                characterController.center = new Vector3(0, standHeight / 2, 0);
+                
+                // Move camera target back up
+                if (cameraTarget != null) {
+                    Vector3 pos = cameraTarget.localPosition;
+                    pos.y = standCameraHeight;
+                    cameraTarget.localPosition = pos;
+                }
+            }
+        }
     }
     
 }
