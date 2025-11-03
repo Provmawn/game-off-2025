@@ -13,20 +13,19 @@ public class PlayerController : MonoBehaviour
 
     // action callback states
     private bool jumpPressed;
-    private bool crouchPressed;
     private bool scanPressed;
 
+    // Crouch system - separate input intent from actual state
+    private bool wantsToCrouch = false;  // Player's input intent
+    private bool isCrouching = false;    // Actual crouching state
+    
     private float standHeight = 2f;
     private float crouchHeight = 1f;
-    private bool isCrouching;
     
     private CharacterController characterController;
     private Vector3 velocity;
     
-    [Header("Camera")]
-    public Transform cameraTarget; // Drag your CameraTarget here
-    public float standCameraHeight = 1.6f;
-    public float crouchCameraHeight = 0.8f;
+
 
     void Start()
     {
@@ -67,14 +66,18 @@ public class PlayerController : MonoBehaviour
 
     public void OnCrouch(InputAction.CallbackContext context) 
     {
-        crouchPressed = context.performed;
-        Debug.Log(crouchPressed);
+        if (context.performed) 
+        {
+            wantsToCrouch = !wantsToCrouch; // Toggle what the player wants to do
+            Debug.Log($"Crouch button pressed - wantsToCrouch is now: {wantsToCrouch}");
+        }
     }
 
     public void OnJump(InputAction.CallbackContext context) 
     {
         if (context.performed)
         {
+            Debug.Log("jump input detected");
             jumpPressed = true;
         }
     }
@@ -89,7 +92,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         HandleMovement();
-        //HandleJump();
+        HandleJump();
         HandleCrouch();
     }
     
@@ -126,35 +129,38 @@ public class PlayerController : MonoBehaviour
         if (jumpPressed && characterController.isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            Debug.Log("Jumped");
         }
         jumpPressed = false;
     }
 
-    void HandleCrouch() {
-        if (crouchPressed && !isCrouching && characterController.isGrounded) {
+    void HandleCrouch() 
+    {
+        // Handle input intent vs actual crouching state separately
+        
+        // Player wants to crouch but isn't crouching yet
+        if (wantsToCrouch && !isCrouching && characterController.isGrounded)
+        {
             isCrouching = true;
-            characterController.height = crouchHeight;
             characterController.center = new Vector3(0, crouchHeight / 2, 0);
-            
-            // Move camera target down
-            if (cameraTarget != null) {
-                Vector3 pos = cameraTarget.localPosition;
-                pos.y = crouchCameraHeight;
-                cameraTarget.localPosition = pos;
-            }
+            Debug.Log("Started crouching");
         } 
-        else if (crouchPressed && isCrouching) {
-            if (!Physics.Raycast(transform.position, Vector3.up, standHeight)) {
+        // Player wants to stand but is currently crouching
+        else if (!wantsToCrouch && isCrouching) 
+        {
+
+            // Check if there's room to stand up
+            if (!Physics.Raycast(transform.position, Vector3.up, standHeight, LayerMask.GetMask("Obstacle"))) 
+            {
                 isCrouching = false;
-                characterController.height = standHeight;
                 characterController.center = new Vector3(0, standHeight / 2, 0);
-                
-                // Move camera target back up
-                if (cameraTarget != null) {
-                    Vector3 pos = cameraTarget.localPosition;
-                    pos.y = standCameraHeight;
-                    cameraTarget.localPosition = pos;
-                }
+                Debug.Log("Stopped crouching");
+            }
+            else 
+            {
+                Debug.Log("Can't stand up - ceiling in the way!");
+                // Reset input intent to match current state (stay crouched)
+                wantsToCrouch = true;
             }
         }
     }
