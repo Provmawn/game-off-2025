@@ -142,7 +142,16 @@ public class PlayerController : MonoBehaviour
     {
         if (context.performed)
         {
-            scanPressed = true;
+            Debug.Log("Scan input received - calling scan directly");
+            if (gauntlet != null)
+            {
+                gauntlet.Scan();
+                PlayGauntletScanSound();
+            }
+            else
+            {
+                Debug.Log("No gauntlet assigned!");
+            }
         }
     }
 
@@ -496,7 +505,7 @@ public class PlayerController : MonoBehaviour
         {
             gauntlet.Scan();
             PlayGauntletScanSound();
-            scanPressed = false; // Reset after use
+            scanPressed = false;
         }
     }
     
@@ -630,6 +639,11 @@ public class PlayerController : MonoBehaviour
         {
             gauntletAudioSource.volume = gauntletVolume;
             gauntletAudioSource.PlayOneShot(gauntletScanSound);
+            Debug.Log("Gauntlet scan sound played");
+        }
+        else
+        {
+            Debug.Log($"Scan sound failed - Sound: {gauntletScanSound != null}, AudioSource: {gauntletAudioSource != null}");
         }
     }
     

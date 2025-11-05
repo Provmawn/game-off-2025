@@ -515,7 +515,7 @@ PrefabInstance:
     - target: {fileID: 3060284286485794030, guid: d1ce93b84ec618e4ab36c6e06c8119ad, type: 3}
       propertyPath: gauntlet
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1745924238}
     - target: {fileID: 3060284286485794030, guid: d1ce93b84ec618e4ab36c6e06c8119ad, type: 3}
       propertyPath: headTransform
       value: 
@@ -1012,6 +1012,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1745924238 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5906185631105004880, guid: d1ce93b84ec618e4ab36c6e06c8119ad, type: 3}
+  m_PrefabInstance: {fileID: 1153600931}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00d4fe3c5deb6b84191d012ff9a3da1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1786009377 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5151472753168936559, guid: d1ce93b84ec618e4ab36c6e06c8119ad, type: 3}
