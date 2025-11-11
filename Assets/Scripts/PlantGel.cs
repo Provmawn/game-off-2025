@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlantGel : MonoBehaviour
+public class PlantGel : MonoBehaviour, IScannable, IPickupable
 {
     [Header("Item Properties")]
     public string itemName = "Plant Gel";
@@ -9,7 +9,7 @@ public class PlantGel : MonoBehaviour
     
     [Header("Consumption Effects")]
     public float healthRestore = 50f;
-    public float consumeTime = 2f; // Time to consume
+    public float consumeTime = 2f;
     
     private ScanHighlight scanHighlight;
     
@@ -22,35 +22,55 @@ public class PlantGel : MonoBehaviour
         }
     }
     
-    public void OnScanned()
-    {
-        Debug.Log($"{itemName} was scanned!");
-        scanHighlight.StartHighlight();
-    }
-    
     public void PickUp()
     {
         if (canBePickedUp)
         {
-            Debug.Log($"Picked up {itemName}");
-            // TODO: Add to player inventory
             gameObject.SetActive(false);
         }
+    }
+    
+    public string ItemName => itemName;
+    public bool CanBePickedUp => canBePickedUp;
+    
+    public void PickUp(PlayerController player)
+    {
+        if (canBePickedUp)
+        {
+            gameObject.SetActive(false);
+        }
+    }
+    
+    public GameObject GetGameObject()
+    {
+        return gameObject;
     }
     
     public void Consume(PlayerController player)
     {
         if (canBeConsumed && player != null)
         {
-            Debug.Log($"Consuming {itemName}...");
             
-            // Restore health
             player.currentHealth = Mathf.Min(player.maxHealth, player.currentHealth + healthRestore);
             
-            Debug.Log($"Consumed {itemName}! Restored {healthRestore} health.");
             
-            // Remove from inventory and destroy
             Destroy(gameObject);
         }
+    }
+    
+    public void OnScanned()
+    {
+        scanHighlight?.StartHighlight();
+        GetComponent<OutlineHighlight>()?.StartHighlight();
+    }
+    
+    public string GetScanInfo()
+    {
+        return $"{itemName} - Restores {healthRestore} health";
+    }
+    
+    public ScanType GetScanType()
+    {
+        return ScanType.Item;
     }
 }

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8524171185378755839}
   - component: {fileID: 7062220787216719340}
   - component: {fileID: 9054685107711309185}
+  - component: {fileID: -6760375842907275445}
   m_Layer: 7
   m_Name: Pebble
   m_TagString: Untagged
@@ -118,6 +119,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-6760375842907275445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6993880881451688231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bc6237da03617942bc2cd1fb4cff077, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  highlightColor: {r: 0, g: 1, b: 1, a: 1}
+  highlightDuration: 5
+  pulseSpeed: 2
 --- !u!1001 &691399988530432877
 PrefabInstance:
   m_ObjectHideFlags: 0

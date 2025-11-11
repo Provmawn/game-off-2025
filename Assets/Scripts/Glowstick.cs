@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Glowstick : MonoBehaviour
+public class Glowstick : MonoBehaviour, IPickupable
 {
     [Header("Item Properties")]
     public string itemName = "Glowstick";
@@ -10,7 +10,7 @@ public class Glowstick : MonoBehaviour
     public float noiseRadius = 3f;
     
     [Header("Light Properties")]
-    public float lightDuration = 30f; // 30 seconds
+    public float lightDuration = 30f;
     public Light glowLight;
     public Color glowColor = Color.green;
     public float lightIntensity = 2f;
@@ -29,13 +29,12 @@ public class Glowstick : MonoBehaviour
             rb = gameObject.AddComponent<Rigidbody>();
         }
         
-        // Set up light component
         if (glowLight == null)
         {
             glowLight = gameObject.AddComponent<Light>();
         }
         glowLight.color = glowColor;
-        glowLight.intensity = 0f; // Start dim
+        glowLight.intensity = 0f;
         glowLight.range = 10f;
         
         scanHighlight = GetComponent<ScanHighlight>();
@@ -47,8 +46,23 @@ public class Glowstick : MonoBehaviour
     
     public void OnScanned()
     {
-        Debug.Log($"{itemName} was scanned!");
         scanHighlight.StartHighlight();
+    }
+    
+    public string ItemName => itemName;
+    public bool CanBePickedUp => canBePickedUp;
+    
+    public void PickUp(PlayerController player)
+    {
+        if (canBePickedUp)
+        {
+            gameObject.SetActive(false);
+        }
+    }
+    
+    public GameObject GetGameObject()
+    {
+        return gameObject;
     }
     
     void Update()
@@ -60,13 +74,10 @@ public class Glowstick : MonoBehaviour
             
             if (timeRemaining <= 0f)
             {
-                // Light expired
                 glowLight.intensity = 0f;
-                Debug.Log("Glowstick light expired");
             }
             else
             {
-                // Fade light over time
                 float fadePercent = timeRemaining / lightDuration;
                 glowLight.intensity = lightIntensity * fadePercent;
             }
@@ -77,8 +88,6 @@ public class Glowstick : MonoBehaviour
     {
         if (canBePickedUp)
         {
-            Debug.Log($"Picked up {itemName}");
-            // TODO: Add to player inventory
             gameObject.SetActive(false);
         }
     }
@@ -93,11 +102,8 @@ public class Glowstick : MonoBehaviour
             rb.isKinematic = false;
             rb.AddForce(direction * force, ForceMode.Impulse);
             
-            // Activate light when thrown
             ActivateLight();
             
-            Debug.Log("Glowstick thrown and activated!");
-            // TODO: Emit throw noise
         }
     }
     
@@ -108,7 +114,6 @@ public class Glowstick : MonoBehaviour
             isActivated = true;
             activationTime = Time.time;
             glowLight.intensity = lightIntensity;
-            Debug.Log("Glowstick light activated!");
         }
     }
     
@@ -116,8 +121,6 @@ public class Glowstick : MonoBehaviour
     {
         if (hasBeenThrown && collision.gameObject.CompareTag("Ground"))
         {
-            Debug.Log($"Glowstick hit ground - noise radius: {noiseRadius}");
-            // TODO: Notify monsters of noise
         }
     }
 }

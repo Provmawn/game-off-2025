@@ -1,13 +1,13 @@
 using UnityEngine;
 
-public class Pebble : MonoBehaviour
+public class Pebble : MonoBehaviour, IPickupable
 {
     [Header("Item Properties")]
     public string itemName = "Pebble";
     public bool canBePickedUp = true;
     public bool canBeThrown = true;
     public float throwForce = 10f;
-    public float noiseRadius = 5f; // Noise when hitting ground
+    public float noiseRadius = 5f;
     
     private Rigidbody rb;
     private bool hasBeenThrown = false;
@@ -30,16 +30,29 @@ public class Pebble : MonoBehaviour
     
     public void OnScanned()
     {
-        Debug.Log($"{itemName} was scanned!");
         scanHighlight.StartHighlight();
+    }
+    
+    public string ItemName => itemName;
+    public bool CanBePickedUp => canBePickedUp;
+    
+    public void PickUp(PlayerController player)
+    {
+        if (canBePickedUp)
+        {
+            gameObject.SetActive(false);
+        }
+    }
+    
+    public GameObject GetGameObject()
+    {
+        return gameObject;
     }
     
     public void PickUp()
     {
         if (canBePickedUp)
         {
-            Debug.Log($"Picked up {itemName}");
-            // TODO: Add to player inventory
             gameObject.SetActive(false);
         }
     }
@@ -54,8 +67,6 @@ public class Pebble : MonoBehaviour
             rb.isKinematic = false;
             rb.AddForce(direction * force, ForceMode.Impulse);
             
-            Debug.Log("Pebble thrown!");
-            // TODO: Emit throw noise
         }
     }
     
@@ -63,18 +74,13 @@ public class Pebble : MonoBehaviour
     {
         if (hasBeenThrown && collision.gameObject.CompareTag("Ground"))
         {
-            Debug.Log($"Pebble hit ground - noise radius: {noiseRadius}");
-            // TODO: Notify monsters of noise
             
-            // Break the pebble
             BreakPebble();
         }
     }
     
     void BreakPebble()
     {
-        Debug.Log("Pebble broke!");
-        // TODO: Add break effect/sound
         Destroy(gameObject);
     }
 }

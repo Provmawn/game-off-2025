@@ -405,6 +405,7 @@ GameObject:
   - component: {fileID: 3060284286485794030}
   - component: {fileID: 3767840464537952747}
   - component: {fileID: 7792033301460976336}
+  - component: {fileID: 8326219185302988801}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -468,6 +469,7 @@ MonoBehaviour:
   hasMaxDownwardSlopeChangeAngle: 1
   maxDownwardSlopeChangeAngle: 60
   gauntlet: {fileID: 5906185631105004880}
+  itemHandler: {fileID: 0}
   weaponPivot: {fileID: 7832092455285616154}
   weaponHolder: {fileID: 3577004674442571374}
   swayAmount: 0.02
@@ -478,12 +480,12 @@ MonoBehaviour:
   bobAmount: 0.05
   bobSideAmount: 0.02
   dirtFootstepSounds:
-  - {fileID: 8300000, guid: 4686ef8d7bb8b5b4d8111ea9aaf754ad, type: 3}
-  - {fileID: 8300000, guid: 9c12aaa2b6a1f70419e46121b77af6b4, type: 3}
-  - {fileID: 8300000, guid: a3b62d4e0c37baf4b81ab5eda2928684, type: 3}
-  - {fileID: 8300000, guid: 09a8ed6d1ae365a48a48e52b598e2f4e, type: 3}
-  - {fileID: 8300000, guid: d50bc4ee7652afd4894fbce00a3df2b8, type: 3}
-  - {fileID: 8300000, guid: f18877233f1f08f45b9c07166d25e69a, type: 3}
+  - {fileID: 8300000, guid: 29b2bc639fdd253448e5779f9644cacc, type: 3}
+  - {fileID: 8300000, guid: 6e6ce5ad0261bc34384658a8e4024b47, type: 3}
+  - {fileID: 8300000, guid: 458cb3adbf3faab4981cced689d7e52b, type: 3}
+  - {fileID: 8300000, guid: 15dd055a89f45b3479f14f732982b78b, type: 3}
+  - {fileID: 8300000, guid: 21af297dbe9d8cd488374463b412530d, type: 3}
+  - {fileID: 8300000, guid: 5f6ccb0d3cc300e418c3a6f7ea2f55d5, type: 3}
   caveFootstepSounds:
   - {fileID: 8300000, guid: 83c8e5838e8d3b94298a7a493c63ec70, type: 3}
   - {fileID: 8300000, guid: f362eb4a07538c94bbd1f5a7e392e078, type: 3}
@@ -506,12 +508,6 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 100
   healthRegenRate: 5
-  inventory:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  selectedSlot: 0
-  interactionRange: 3
 --- !u!136 &3767840464537952747
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -577,11 +573,35 @@ MonoBehaviour:
     m_ActionId: 351f2ccd-1f9f-44bf-9bec-d62ac5c5f408
     m_ActionName: 'Player/Move[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3060284286485794030}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnLook
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 6b444451-8a00-4d00-a97e-f47457f736a8
     m_ActionName: 'Player/Look[/Mouse/delta,/Pen/delta]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3060284286485794030}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnScan
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 6c2ab1b8-8984-453a-af3d-a3c78ae1679a
     m_ActionName: 'Player/Scan[/Mouse/leftButton,/Keyboard/enter]'
   - m_PersistentCalls:
@@ -689,27 +709,99 @@ MonoBehaviour:
     m_ActionId: 9caa3d8a-6b2f-4e8e-8bad-6ede561bd9be
     m_ActionName: UI/TrackedDeviceOrientation
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3060284286485794030}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnItemSlotOne
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 6991e065-5f90-4df6-a1c7-7d24b7207f2b
     m_ActionName: 'Player/ItemSlotOne[/Keyboard/1]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3060284286485794030}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnItemSlotTwo
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: c7b7c985-47db-44e2-a9c7-21f2420a1c5f
     m_ActionName: 'Player/ItemSlotTwo[/Keyboard/2]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3060284286485794030}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnItemSlotThree
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 6859b387-a8e6-413f-9282-90e4ae3d01d2
     m_ActionName: 'Player/ItemSlotThree[/Keyboard/3]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3060284286485794030}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnScrollDown
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 0efbf909-31a0-41f5-b223-fcf952fd9294
     m_ActionName: 'Player/ScrollDown[/Mouse/scroll/down]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3060284286485794030}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnScrollUp
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 94d347f1-385e-469d-8396-b83bb08adaaf
     m_ActionName: 'Player/ScrollUp[/Mouse/scroll/down]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 3060284286485794030}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnSprint
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: fcc9872c-2755-48f7-a0fd-f4a29da39e7d
     m_ActionName: 'Player/Sprint[/Keyboard/shift]'
   m_NeverAutoSwitchControlSchemes: 0
@@ -717,6 +809,31 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!143 &8326219185302988801
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5151472753168936559}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5239900315330970191
 GameObject:
   m_ObjectHideFlags: 0
@@ -1182,7 +1299,8 @@ PrefabInstance:
       value: Gauntlet
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5014933859158070852, guid: 9f5ff3fb740521e429b3bd9f8c09224c, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9f5ff3fb740521e429b3bd9f8c09224c, type: 3}
