@@ -38,6 +38,9 @@ public class Gauntlet : MonoBehaviour
     public bool showScanCone = true;
     public Color scanConeColor = Color.green;
     public int coneResolution = 20;
+
+    public ItemHolder ItemHolder;
+
     void Start()
     {
         if (gauntletAnimator == null)
@@ -349,4 +352,5 @@ public class Gauntlet : MonoBehaviour
         coneDirection += (right * Mathf.Cos(circleAngleRad) + up * Mathf.Sin(circleAngleRad)) * Mathf.Sin(halfAngleRad);
         return coneDirection.normalized;
     }
+
 }

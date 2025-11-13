@@ -46,9 +46,12 @@ public class PlayerController : MonoBehaviour
     
     [Header("Component References")]
     public Gauntlet gauntlet;
-    public ItemHandler itemHandler;
     public Transform weaponPivot;
     public Transform weaponHolder;
+    public Transform itemHolder;
+    
+    [Header("Item System")]
+    public GameObject currentHeldItem;
     
     [Header("Weapon Sway")]
     public float swayAmount = 0.02f;
@@ -84,7 +87,11 @@ public class PlayerController : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth = 100f;
     public float healthRegenRate = 5f;
-    
+
+    [Header("Interactor")]
+    public float interactDistance = 3f;
+    public LayerMask interactMask;
+
     private Vector2 moveInput;
     private Vector2 lookInput;
     private float verticalRotation = 0f;
@@ -122,12 +129,6 @@ public class PlayerController : MonoBehaviour
         characterController.slopeLimit = slopeLimit;
         
         if (gauntlet == null) gauntlet = GetComponentInChildren<Gauntlet>();
-        if (itemHandler == null) itemHandler = GetComponentInChildren<ItemHandler>();
-        
-        if (itemHandler != null && itemHandler.cameraTransform == null)
-        {
-            itemHandler.cameraTransform = headTransform != null ? headTransform : transform;
-        }
         
         SetupAudioSources();
         
@@ -145,16 +146,75 @@ public class PlayerController : MonoBehaviour
         HandleMovement();
         HandleCrouch();
         HandleHealthRegen();
-        HandleItemUse();
     }
     
     public void OnMove(InputAction.CallbackContext context) => moveInput = context.ReadValue<Vector2>();
     public void OnLook(InputAction.CallbackContext context) => lookInput = context.ReadValue<Vector2>();
     public void OnScan(InputAction.CallbackContext context) { if (context.performed && gauntlet != null) { gauntlet.Scan(); } }
-    public void OnInteract(InputAction.CallbackContext context) { if (context.performed && itemHandler != null) itemHandler.Interact(); }
+
+    public void OnInteract(InputAction.CallbackContext context) {
+        if (context.started)
+        {
+            if (currentHeldItem != null)
+            {
+                DropHeldItem();
+                return;
+            }
+            
+            if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit hit, interactDistance, interactMask))
+            {
+                Interactable interactable = hit.collider.GetComponent<Interactable>();
+                if (interactable != null && interactable.isInteractable)
+                {
+                    currentHeldItem = interactable.gameObject;
+                    
+                    if (gauntlet != null && gauntlet.ItemHolder != null)
+                    {
+                        gauntlet.ItemHolder.PickUp(interactable);
+                    }
+                    else
+                    {
+                        interactable.Interact();
+                    }
+                }
+            }
+        }
+    }
+
     public void OnCrouch(InputAction.CallbackContext context) { if (context.performed) wantsToCrouch = !wantsToCrouch; }
     public void OnJump(InputAction.CallbackContext context) { if (context.performed) TryJump(); }
     public void OnSprint(InputAction.CallbackContext context) { sprintPressed = context.started ? true : (context.canceled ? false : sprintPressed); }
+    
+    void DropHeldItem()
+    {
+        if (currentHeldItem == null) return;
+        
+        currentHeldItem.transform.SetParent(null);
+        
+        Vector3 dropPosition = transform.position + transform.forward * 2f + Vector3.up * 1f;
+        currentHeldItem.transform.position = dropPosition;
+        
+        Rigidbody rb = currentHeldItem.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
+        }
+        
+        Collider[] colliders = currentHeldItem.GetComponents<Collider>();
+        foreach (Collider col in colliders)
+        {
+            col.enabled = true;
+        }
+        
+        Interactable interactable = currentHeldItem.GetComponent<Interactable>();
+        if (interactable != null)
+        {
+            interactable.isInteractable = true;
+        }
+        
+        currentHeldItem = null;
+    }
     
     void HandlePhysics()
     {
@@ -432,6 +492,7 @@ public class PlayerController : MonoBehaviour
         }
     }
     
+    
     void HandleFootstepAudio(bool isGrounded, float movementSpeed)
     {
         bool isMoving = isGrounded && movementSpeed > 0.1f;
@@ -580,21 +641,6 @@ public class PlayerController : MonoBehaviour
         float noiseRadius = baseNoiseRadius * radiusMultiplier;
     }
     
-    void HandleItemUse()
-    {
-        if (itemHandler == null) return;
-        
-        if (Input.GetMouseButtonDown(0))
-        {
-            itemHandler.UseItem();
-        }
-        
-        if (Input.GetMouseButtonDown(1))
-        {
-            itemHandler.ThrowItem();
-        }
-    }
-    
     void SetupAudioSources()
     {
         AudioSource[] audioSources = GetComponents<AudioSource>();
@@ -655,8 +701,6 @@ public class PlayerController : MonoBehaviour
     public float ExhaustionTimeRemaining => isExhausted ? Mathf.Max(0f, exhaustionFinishes - Time.time) : 0f;
     public bool IsSprinting => CanSprint() && sprintPressed && moveInput.magnitude > 0.1f;
     
-    public bool IsInventoryFull() => itemHandler?.IsHandsFull() ?? false;
-    public GameObject GetSelectedItem() => itemHandler?.GetHeldItem();
-    public IPickupable GetCurrentPickupable() => itemHandler?.GetCurrentPickupable();
-    public string GetItemName(GameObject item) => itemHandler?.GetItemName(item) ?? "Unknown";
+    
+    
 }

@@ -14,5 +14,6 @@ public enum ScanType
     Enemy,
     Hazard,
     Interactive,
+    Quest,
     Unknown
 }

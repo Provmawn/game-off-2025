@@ -319,15 +319,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6706243364561404130, guid: f1662f7f4b1558a48a6d9f397ed00354, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 10.457894
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6706243364561404130, guid: f1662f7f4b1558a48a6d9f397ed00354, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 608.16223
+      value: 610
       objectReference: {fileID: 0}
     - target: {fileID: 6706243364561404130, guid: f1662f7f4b1558a48a6d9f397ed00354, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 33.23802
+      value: 22
       objectReference: {fileID: 0}
     - target: {fileID: 6706243364561404130, guid: f1662f7f4b1558a48a6d9f397ed00354, type: 3}
       propertyPath: m_LocalRotation.w
@@ -646,9 +646,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5641306c99a50bd43b2376b9d2ea5a1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objectName: Unknown Object
-  description: A mysterious object
-  scanType: 0
 --- !u!1 &1150431483
 GameObject:
   m_ObjectHideFlags: 0
@@ -816,11 +813,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4417903366832013729, guid: d1ce93b84ec618e4ab36c6e06c8119ad, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 616
+      value: 612
       objectReference: {fileID: 0}
     - target: {fileID: 4417903366832013729, guid: d1ce93b84ec618e4ab36c6e06c8119ad, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 4417903366832013729, guid: d1ce93b84ec618e4ab36c6e06c8119ad, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1511,9 +1508,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5641306c99a50bd43b2376b9d2ea5a1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objectName: Unknown Object
-  description: A mysterious object
-  scanType: 0
 --- !u!1 &1687888970
 GameObject:
   m_ObjectHideFlags: 0
@@ -1916,9 +1910,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5641306c99a50bd43b2376b9d2ea5a1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objectName: Unknown Object
-  description: A mysterious object
-  scanType: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
