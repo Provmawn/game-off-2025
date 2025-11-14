@@ -52,6 +52,9 @@ public class PlayerController : MonoBehaviour
     
     [Header("Item System")]
     public GameObject currentHeldItem;
+    public Animator itemAnimator;
+    public string holdItemTrigger = "HoldItem";
+    public string idleItemTrigger = "IdleItem";
     
     [Header("Weapon Sway")]
     public float swayAmount = 0.02f;
@@ -157,7 +160,12 @@ public class PlayerController : MonoBehaviour
         {
             if (currentHeldItem != null)
             {
-                DropHeldItem();
+                if (gauntlet != null && gauntlet.ItemHolder != null)
+                {
+                    gauntlet.ItemHolder.Throw(5f);
+                }
+                currentHeldItem = null;
+                TriggerIdleAnimation();
                 return;
             }
             
@@ -176,6 +184,8 @@ public class PlayerController : MonoBehaviour
                     {
                         interactable.Interact();
                     }
+                    
+                    TriggerHoldAnimation();
                 }
             }
         }
@@ -185,35 +195,28 @@ public class PlayerController : MonoBehaviour
     public void OnJump(InputAction.CallbackContext context) { if (context.performed) TryJump(); }
     public void OnSprint(InputAction.CallbackContext context) { sprintPressed = context.started ? true : (context.canceled ? false : sprintPressed); }
     
-    void DropHeldItem()
+    void TriggerHoldAnimation()
     {
-        if (currentHeldItem == null) return;
-        
-        currentHeldItem.transform.SetParent(null);
-        
-        Vector3 dropPosition = transform.position + transform.forward * 2f + Vector3.up * 1f;
-        currentHeldItem.transform.position = dropPosition;
-        
-        Rigidbody rb = currentHeldItem.GetComponent<Rigidbody>();
-        if (rb != null)
+        if (itemAnimator != null)
         {
-            rb.isKinematic = false;
-            rb.linearVelocity = Vector3.zero;
+            itemAnimator.SetTrigger(holdItemTrigger);
         }
-        
-        Collider[] colliders = currentHeldItem.GetComponents<Collider>();
-        foreach (Collider col in colliders)
+        else if (gauntlet != null && gauntlet.gauntletAnimator != null)
         {
-            col.enabled = true;
+            gauntlet.gauntletAnimator.SetTrigger(holdItemTrigger);
         }
-        
-        Interactable interactable = currentHeldItem.GetComponent<Interactable>();
-        if (interactable != null)
+    }
+    
+    void TriggerIdleAnimation()
+    {
+        if (itemAnimator != null)
         {
-            interactable.isInteractable = true;
+            itemAnimator.SetTrigger(idleItemTrigger);
         }
-        
-        currentHeldItem = null;
+        else if (gauntlet != null && gauntlet.gauntletAnimator != null)
+        {
+            gauntlet.gauntletAnimator.SetTrigger(idleItemTrigger);
+        }
     }
     
     void HandlePhysics()

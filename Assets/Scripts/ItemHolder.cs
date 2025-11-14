@@ -33,6 +33,7 @@ public class ItemHolder : MonoBehaviour
         Rigidbody rb = interactable.GetComponent<Rigidbody>();
         if (rb != null)
         {
+            Debug.Log("throwing");
             rb.isKinematic = false;
             rb.AddForce(transform.forward * force, ForceMode.VelocityChange);
         }
