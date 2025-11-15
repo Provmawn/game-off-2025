@@ -14,7 +14,6 @@ public class PlayerController : MonoBehaviour
     public float sprintSpeed = 8f;
     public float jumpHeight = 2f;
     public float gravity = -9.81f;
-    public float airControlMultiplier = 0.3f;
     
     [Header("Stamina")]
     public float maxStamina = 100f;
@@ -34,15 +33,7 @@ public class PlayerController : MonoBehaviour
     public float fovTransitionSpeed = 8f;
     
     [Header("Ground Detection")]
-    public float coyoteTime = 0.1f;
-    public float groundSnappingDistance = 0.5f;
-    public bool constrainVelocityToGroundPlane = true;
-    
-    [Header("Slope Handling")]
-    public float slopeLimit = 85f;
-    public bool preventGroundingWhenMovingTowardsNoGrounding = true;
-    public bool hasMaxDownwardSlopeChangeAngle = true;
-    public float maxDownwardSlopeChangeAngle = 60f;
+    public float groundCheckDistance = 0.1f;
     
     [Header("Component References")]
     public Gauntlet gauntlet;
@@ -91,6 +82,15 @@ public class PlayerController : MonoBehaviour
     public float currentHealth = 100f;
     public float healthRegenRate = 5f;
 
+    public float maxRadiation = 100f;
+    public float currentRadiation = 0f;
+    
+    [Header("Screen Shake")]
+    private bool isShaking = false;
+    private float shakeEndTime = 0f;
+    private float shakeMagnitude = 0f;
+    private Vector3 originalCameraPosition;
+
     [Header("Interactor")]
     public float interactDistance = 3f;
     public LayerMask interactMask;
@@ -110,28 +110,18 @@ public class PlayerController : MonoBehaviour
     private Vector2 currentSway = Vector2.zero;
     private Vector2 targetSway = Vector2.zero;
     private float bobTimer = 0f;
-    private Vector3 airMomentum = Vector3.zero;
-    private bool wasGroundedLastFrame = true;
-    private bool wasSprintingWhenAirborne = false;
-    private float footstepTimer = 0f;
-    private float footstepInterval = 0.7f;
-    private bool wasMovingLastFrame = false;
-    private bool wasAirborneLastFrame = false;
-    private bool isJumping = false;
-    private float jumpTime = 0f;
     private CharacterController characterController;
     private Vector3 velocity;
-    private float lastGroundedTime;
-    private float lastLandSoundTime = 0f;
-    private float landSoundCooldown = 0.5f;
+    private bool isGrounded;
     
     void Start()
     {
         characterController = GetComponent<CharacterController>();
         playerCamera = GetComponentInChildren<Camera>();
-        characterController.slopeLimit = slopeLimit;
         
         if (gauntlet == null) gauntlet = GetComponentInChildren<Gauntlet>();
+        
+        originalCameraPosition = playerCamera.transform.localPosition;
         
         SetupAudioSources();
         
@@ -141,14 +131,14 @@ public class PlayerController : MonoBehaviour
     
     void Update()
     {
-        HandlePhysics();
+        HandleMovement();
         HandleMouseLook();
         HandleStamina();
         HandleFOV();
         HandleWeaponSway();
-        HandleMovement();
         HandleCrouch();
         HandleHealthRegen();
+        HandleScreenShake();
     }
     
     public void OnMove(InputAction.CallbackContext context) => moveInput = context.ReadValue<Vector2>();
@@ -219,150 +209,40 @@ public class PlayerController : MonoBehaviour
         }
     }
     
-    void HandlePhysics()
+    void HandleMovement()
     {
+        // Ground check
+        isGrounded = characterController.isGrounded;
+        
+        // Apply gravity
+        if (isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f; // Small downward force to keep grounded
+        }
         velocity.y += gravity * Time.deltaTime;
         
-        RaycastHit hit;
-        Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
-        bool isNearGround = Physics.Raycast(rayOrigin, Vector3.down, out hit, 2.0f);
-        bool isGrounded = isNearGround && hit.distance <= 1.3f;
+        // Get movement input
+        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
         
-        if (isGrounded && preventGroundingWhenMovingTowardsNoGrounding && moveInput.magnitude > 0.1f)
-        {
-            Vector3 moveDirection = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
-            Vector3 futurePosition = transform.position + moveDirection * (speed * 0.5f);
-            Vector3 futureRayOrigin = futurePosition + Vector3.up * 0.1f;
-            if (!Physics.Raycast(futureRayOrigin, Vector3.down, 1.5f))
-            {
-                isGrounded = false;
-            }
-        }
+        // Apply speed
+        float currentSpeed = (CanSprint() && sprintPressed && moveInput.magnitude > 0.1f) ? sprintSpeed : speed;
+        move *= currentSpeed;
         
-        if (isGrounded && hasMaxDownwardSlopeChangeAngle && wasGroundedLastFrame)
-        {
-            if (hit.normal != Vector3.zero)
-            {
-                float currentSlopeAngle = Vector3.Angle(Vector3.up, hit.normal);
-                if (currentSlopeAngle > maxDownwardSlopeChangeAngle)
-                {
-                    isGrounded = false;
-                }
-            }
-        }
+        // Move the controller
+        characterController.Move(move * Time.deltaTime);
+        characterController.Move(velocity * Time.deltaTime);
         
-        if (isGrounded)
-        {
-            if (wasAirborneLastFrame && !wasGroundedLastFrame && Time.time > lastLandSoundTime + landSoundCooldown)
-            {
-                PlayLandSound();
-                lastLandSoundTime = Time.time;
-            }
-            
-            lastGroundedTime = Time.time;
-            
-            if (isJumping && velocity.y <= 0)
-            {
-                isJumping = false;
-            }
-            
-            if (velocity.y < 0)
-            {
-                velocity.y = velocity.y < -2f ? -2f : velocity.y;
-            }
-            else if (velocity.y > 0 && !isJumping)
-            {
-                velocity.y = 0f;
-            }
-            
-            wasAirborneLastFrame = false;
-        }
-        else
-        {
-            if (!wasGroundedLastFrame)
-            {
-                wasAirborneLastFrame = true;
-            }
-        }
+        HandleFootstepAudio();
     }
     
     void TryJump()
     {
-        RaycastHit hit;
-        Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
-        bool isNearGround = Physics.Raycast(rayOrigin, Vector3.down, out hit, 2.0f);
-        bool isGroundClose = isNearGround && hit.distance <= 1.3f;
-        bool canJump = isGroundClose || (Time.time - lastGroundedTime <= coyoteTime);
-        
-        if (canJump)
+        if (isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            isJumping = true;
-            jumpTime = Time.time;
             EmitNoise(jumpNoiseMultiplier);
             PlayJumpSound();
         }
-    }
-    
-    void HandleMovement()
-    {
-        RaycastHit groundHit;
-        Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
-        bool isNearGround = Physics.Raycast(rayOrigin, Vector3.down, out groundHit, 2.0f);
-        bool isGrounded = isNearGround && groundHit.distance <= 1.3f;
-        
-        if (wasGroundedLastFrame && !isGrounded)
-        {
-            Vector3 currentHorizontalVel = characterController.velocity;
-            currentHorizontalVel.y = 0f;
-            airMomentum = currentHorizontalVel;
-            wasSprintingWhenAirborne = CanSprint() && sprintPressed && moveInput.magnitude > 0.1f;
-        }
-        
-        Vector3 forward = transform.forward;
-        Vector3 right = transform.right;
-        Vector3 inputMove = (forward * moveInput.y + right * moveInput.x);
-        inputMove = Vector3.ClampMagnitude(inputMove, 1f);
-        
-        Vector3 finalMove;
-        if (isGrounded)
-        {
-            float currentSpeed = CanSprint() && sprintPressed && moveInput.magnitude > 0.1f ? sprintSpeed : speed;
-            finalMove = inputMove * currentSpeed;
-            airMomentum = Vector3.zero;
-            wasSprintingWhenAirborne = false;
-            
-            if (constrainVelocityToGroundPlane && groundHit.normal != Vector3.zero)
-            {
-                finalMove = Vector3.ProjectOnPlane(finalMove, groundHit.normal);
-            }
-        }
-        else
-        {
-            Vector3 airInput = inputMove * speed * airControlMultiplier;
-            finalMove = airMomentum + airInput;
-            airMomentum = Vector3.Lerp(airMomentum, Vector3.zero, 0.5f * Time.deltaTime);
-        }
-        
-        wasGroundedLastFrame = isGrounded;
-        
-        if (isGrounded && moveInput.magnitude > 0.1f)
-        {
-            Vector3 snapRayOrigin = transform.position + Vector3.up * 0.1f;
-            if (Physics.Raycast(snapRayOrigin, Vector3.down, out RaycastHit snapHit, groundSnappingDistance + 0.1f))
-            {
-                float distanceToGround = snapHit.distance - 0.1f;
-                if (distanceToGround > 0.01f && distanceToGround <= groundSnappingDistance)
-                {
-                    Vector3 snapAmount = Vector3.down * (distanceToGround - 0.01f);
-                    characterController.Move(snapAmount);
-                }
-            }
-        }
-        
-        Vector3 finalMovement = finalMove + (velocity.y * Vector3.up);
-        characterController.Move(finalMovement * Time.deltaTime);
-        HandleFootstepAudio(isGrounded, finalMove.magnitude);
     }
     
     void HandleStamina()
@@ -418,14 +298,7 @@ public class PlayerController : MonoBehaviour
     {
         if (playerCamera == null) return;
         
-        RaycastHit groundHit;
-        Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
-        bool isNearGround = Physics.Raycast(rayOrigin, Vector3.down, out groundHit, 2.0f);
-        bool isGrounded = isNearGround && groundHit.distance <= 1.3f;
-        
-        bool isSprinting = isGrounded ? 
-            (CanSprint() && sprintPressed && moveInput.magnitude > 0.1f) : 
-            wasSprintingWhenAirborne;
+        bool isSprinting = isGrounded && CanSprint() && sprintPressed && moveInput.magnitude > 0.1f;
         
         float targetFOV = isSprinting ? sprintFOV : normalFOV;
         playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, targetFOV, fovTransitionSpeed * Time.deltaTime);
@@ -496,48 +369,24 @@ public class PlayerController : MonoBehaviour
     }
     
     
-    void HandleFootstepAudio(bool isGrounded, float movementSpeed)
+    void HandleFootstepAudio()
     {
-        bool isMoving = isGrounded && movementSpeed > 0.1f;
+        bool isMoving = isGrounded && moveInput.magnitude > 0.1f;
         
-        if (wasMovingLastFrame && !isMoving)
-        {
-            footstepTimer = 0f;
-        }
+        if (!isMoving || footstepAudioSource == null) return;
         
-        if (!isMoving || footstepAudioSource == null)
-        {
-            wasMovingLastFrame = false;
-            return;
-        }
+        float footstepInterval = 0.5f;
+        bool isSprinting = CanSprint() && sprintPressed && moveInput.magnitude > 0.1f;
         
-        float currentFootstepInterval = footstepInterval;
-        bool isSprinting = CanSprint() && sprintPressed && moveInput.magnitude > 0.1f && isGrounded;
+        if (isSprinting) footstepInterval *= 0.6f;
+        if (isCrouching) footstepInterval *= 1.8f;
         
-        if (isSprinting)
-        {
-            currentFootstepInterval *= 0.6f;
-        }
-        else if (movementSpeed > speed * 0.7f)
-        {
-            currentFootstepInterval *= 0.8f;
-        }
-        
-        if (isCrouching)
-        {
-            currentFootstepInterval *= 1.8f;
-        }
-        
-        footstepTimer += Time.deltaTime;
-        
-        if (footstepTimer >= currentFootstepInterval)
+        // Simple timer-based footsteps
+        if (Time.time - Time.fixedDeltaTime > footstepInterval)
         {
             SurfaceType surfaceType = DetectSurfaceType();
             PlayRandomFootstep(surfaceType);
-            footstepTimer = 0f;
         }
-        
-        wasMovingLastFrame = true;
     }
     
     void PlayRandomFootstep(SurfaceType surfaceType)
@@ -704,6 +553,36 @@ public class PlayerController : MonoBehaviour
     public float ExhaustionTimeRemaining => isExhausted ? Mathf.Max(0f, exhaustionFinishes - Time.time) : 0f;
     public bool IsSprinting => CanSprint() && sprintPressed && moveInput.magnitude > 0.1f;
     
+
+    public void IncreaseRadiation(float amount)
+    {
+        Debug.Log("Increasing Radiation");
+        currentRadiation += amount;
+    }
     
+    public void ScreenShake(float duration = 0.3f, float magnitude = 0.05f)
+    {
+        isShaking = true;
+        shakeEndTime = Time.time + duration;
+        shakeMagnitude = magnitude;
+    }
+    
+    void HandleScreenShake()
+    {
+        if (isShaking)
+        {
+            if (Time.time < shakeEndTime)
+            {
+                float x = Random.Range(-1f, 1f) * shakeMagnitude;
+                float y = Random.Range(-1f, 1f) * shakeMagnitude;
+                Camera.main.transform.localPosition = originalCameraPosition + new Vector3(x, y, 0);
+            }
+            else
+            {
+                isShaking = false;
+                Camera.main.transform.localPosition = originalCameraPosition;
+            }
+        }
+    }
     
 }

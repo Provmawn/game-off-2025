@@ -671,7 +671,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5151472753168936559}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72d65f7db74330c489a7d19b5233b1ca, type: 3}
   m_Name: 
@@ -680,7 +680,6 @@ MonoBehaviour:
   sprintSpeed: 8
   jumpHeight: 2
   gravity: -9.81
-  airControlMultiplier: 0.3
   maxStamina: 100
   staminaDrainRate: 20
   staminaRegenRate: 15
@@ -692,13 +691,7 @@ MonoBehaviour:
   normalFOV: 60
   sprintFOV: 75
   fovTransitionSpeed: 8
-  coyoteTime: 0.1
-  groundSnappingDistance: 0.5
-  constrainVelocityToGroundPlane: 1
-  slopeLimit: 85
-  preventGroundingWhenMovingTowardsNoGrounding: 1
-  hasMaxDownwardSlopeChangeAngle: 1
-  maxDownwardSlopeChangeAngle: 60
+  groundCheckDistance: 0.1
   gauntlet: {fileID: 5906185631105004880}
   weaponPivot: {fileID: 7832092455285616154}
   weaponHolder: {fileID: 3577004674442571374}
@@ -743,6 +736,8 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 100
   healthRegenRate: 5
+  maxRadiation: 100
+  currentRadiation: 0
   interactDistance: 3
   interactMask:
     serializedVersion: 2
